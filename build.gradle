@@ -5,10 +5,14 @@ version = '5.5.10'
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    compile 'org.apache.directory.studio:org.dom4j.dom4j:1.6.1'
+    compile 'org.dom4j:dom4j:2.0.0-RC1'
+    compile 'com.toastcoders:yavijava:6.0.04-SNAPSHOT'
+    compile 'javax.mail:mail:1.4.7'
+    compile 'javax.servlet:servlet-api:2.5'
 }
 
 sourceSets {
