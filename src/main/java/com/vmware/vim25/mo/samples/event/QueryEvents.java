@@ -29,7 +29,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package com.vmware.vim25.mo.samples.event;
 
-import java.net.URL;
 import java.util.Calendar;
 
 import com.vmware.vim25.Event;
@@ -40,106 +39,88 @@ import com.vmware.vim25.EventFilterSpecByUsername;
 import com.vmware.vim25.EventFilterSpecRecursionOption;
 import com.vmware.vim25.mo.EventManager;
 import com.vmware.vim25.mo.ServiceInstance;
+import com.vmware.vim25.mo.samples.SampleUtil;
 
 /**
  * http://vijava.sf.net
+ * 
  * @author Steve Jin
  */
 
-public class QueryEvents 
-{
-  public static void main(String[] args) throws Exception
-  {
-    if(args.length != 3)
-    {
-      System.out.println("Usage: java QueryEvents " 
-          + "<url> <username> <password>");
-      return;
-    }
+public class QueryEvents {
+   public static void main(String[] args) throws Exception {
+      ServiceInstance si = SampleUtil.createServiceInstance();
 
-    ServiceInstance si = new ServiceInstance(
-        new URL(args[0]), args[1], args[2], true);
+      System.out.println("\n=== Print the latest event ===");
+      EventManager evtMgr = si.getEventManager();
+      Event latestEvent = evtMgr.getLatestEvent();
+      printEvent(latestEvent);
 
-    // get the latest event and print it out
-    EventManager evtMgr = si.getEventManager();
-    Event latestEvent = evtMgr.getLatestEvent();
-    printEvent(latestEvent);
+      System.out.println("\n=== Print the events per filters ===");
+      // create a filter spec for querying events
+      EventFilterSpec efs = new EventFilterSpec();
+      // limit to only error and warning
+      efs.setType(new String[] { "VmFailedToPowerOnEvent", "HostConnectionLostEvent" });
+      // limit to error and warning only
+      efs.setCategory(new String[] { "error", "warning" });
 
-    // create a filter spec for querying events
-    EventFilterSpec efs = new EventFilterSpec();
-    // limit to only error and warning
-    efs.setType(new String[] {"VmFailedToPowerOnEvent", 
-        "HostConnectionLostEvent"});
-    // limit to error and warning only
-    efs.setCategory(new String[] {"error", "warning"});
-    
-    // limit to the children of root folder
-    EventFilterSpecByEntity eFilter = 
-      new EventFilterSpecByEntity();
-    eFilter.setEntity(si.getRootFolder().getMOR());
-    eFilter.setRecursion(
-        EventFilterSpecRecursionOption.children);
-    
-    // limit to the events happened since a month ago
-    EventFilterSpecByTime tFilter = new EventFilterSpecByTime();
-    Calendar startTime = si.currentTime();
-    startTime.roll(Calendar.MONTH, false);
-    tFilter.setBeginTime(startTime);
-    efs.setTime(tFilter);
-    // limit to the user of "administrator"
-    EventFilterSpecByUsername uFilter = 
-        new EventFilterSpecByUsername();
-    uFilter.setSystemUser(false);
-    uFilter.setUserList(new String[] {"administrator"});
+      // limit to the children of root folder
+      EventFilterSpecByEntity eFilter = new EventFilterSpecByEntity();
+      eFilter.setEntity(si.getRootFolder().getMOR());
+      eFilter.setRecursion(EventFilterSpecRecursionOption.children);
+      efs.setEntity(eFilter);
 
-    Event[] events = evtMgr.queryEvents(efs);
-    
-    // print each of the events
-    for(int i=0; events!=null && i<events.length; i++) 
-    {
-      System.out.println("\nEvent #" + i);
-      printEvent(events[i]);
-    }
-    
-    si.getServerConnection().logout();
-  }
+      // limit to the specified user
+      EventFilterSpecByUsername uFilter = new EventFilterSpecByUsername();
+      uFilter.setSystemUser(false);
+      uFilter.setUserList(new String[] { "" }); // e.g. root or Administrator
+      efs.setUserName(uFilter);
 
-  /**
-   * Only print an event as Event type.
-   * More info can be printed if casted to a sub type. 
-   */
-  static void printEvent(Event evt)
-  {
-    String typeName = evt.getClass().getName();
-    int lastDot = typeName.lastIndexOf('.');
-    if(lastDot != -1) 
-    {
-      typeName = typeName.substring(lastDot+1);
-    }
-    System.out.println("Type:" + typeName);
-    System.out.println("Key:" + evt.getKey());
-    System.out.println("ChainId:" + evt.getChainId());
-    System.out.println("User:" + evt.getUserName());
-    System.out.println("Time:" + evt.getCreatedTime().getTime());
-    System.out.println("FormattedMessage:" 
-        + evt.getFullFormattedMessage());
-    if(evt.getDatacenter()!= null)
-    {
-      System.out.println("Datacenter:" 
-          + evt.getDatacenter().getDatacenter());
-    }
-    if(evt.getComputeResource()!=null)
-    {
-      System.out.println("ComputeResource:" 
-          + evt.getComputeResource().getComputeResource());
-    }
-    if(evt.getHost()!=null)
-    {
-      System.out.println("Host:" + evt.getHost().getHost());
-    }
-    if(evt.getVm()!=null)
-    {
-      System.out.println("VM:" + evt.getVm().getVm());
-    }
-  }
+      // limit to the events happened since a month ago
+      EventFilterSpecByTime tFilter = new EventFilterSpecByTime();
+      Calendar startTime = si.currentTime();
+      startTime.roll(Calendar.MONTH, false);
+      tFilter.setBeginTime(startTime);
+      efs.setTime(tFilter);
+
+      Event[] events = evtMgr.queryEvents(efs);
+
+      // print each of the events
+      for (int i = 0; events != null && i < events.length; i++) {
+         System.out.println("\nEvent #" + i);
+         printEvent(events[i]);
+      }
+
+      si.getServerConnection().logout();
+   }
+
+   /**
+    * Only print an event as Event type. More info can be printed if casted to a
+    * sub type.
+    */
+   static void printEvent(Event evt) {
+      String typeName = evt.getClass().getName();
+      int lastDot = typeName.lastIndexOf('.');
+      if (lastDot != -1) {
+         typeName = typeName.substring(lastDot + 1);
+      }
+      System.out.println("Type:" + typeName);
+      System.out.println("Key:" + evt.getKey());
+      System.out.println("ChainId:" + evt.getChainId());
+      System.out.println("User:" + evt.getUserName());
+      System.out.println("Time:" + evt.getCreatedTime().getTime());
+      System.out.println("FormattedMessage:" + evt.getFullFormattedMessage());
+      if (evt.getDatacenter() != null) {
+         System.out.println("Datacenter:" + evt.getDatacenter().getDatacenter());
+      }
+      if (evt.getComputeResource() != null) {
+         System.out.println("ComputeResource:" + evt.getComputeResource().getComputeResource());
+      }
+      if (evt.getHost() != null) {
+         System.out.println("Host:" + evt.getHost().getHost());
+      }
+      if (evt.getVm() != null) {
+         System.out.println("VM:" + evt.getVm().getVm());
+      }
+   }
 }

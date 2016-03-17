@@ -36,62 +36,47 @@ import com.vmware.vim25.EventFilterSpec;
 import com.vmware.vim25.mo.EventHistoryCollector;
 import com.vmware.vim25.mo.EventManager;
 import com.vmware.vim25.mo.ServiceInstance;
+import com.vmware.vim25.mo.samples.SampleUtil;
 
 /**
  * http://vijava.sf.net
+ * 
  * @author Steve Jin
  */
 
-public class QueryHistoricalEvents 
-{  
-  public static void main(String[] args) throws Exception
-  {
-    if(args.length != 3)
-    {
-      System.out.println("Usage: java QueryHistoricalEvents " 
-        + "<url> <username> <password>");
-      return;
-    }
+public class QueryHistoricalEvents {
+   public static void main(String[] args) throws Exception {
+      ServiceInstance si = SampleUtil.createServiceInstance();
+      EventManager evtMgr = si.getEventManager();
 
-    ServiceInstance si = new ServiceInstance(
-      new URL(args[0]), args[1], args[2], true);
+      if (evtMgr != null) {
+         EventFilterSpec eventFilter = new EventFilterSpec();
+         EventHistoryCollector ehc = evtMgr.createCollectorForEvents(eventFilter);
 
-    EventManager evtMgr = si.getEventManager();
+         int total = 0;
 
-    if(evtMgr!=null)
-    {
-      EventFilterSpec eventFilter = new EventFilterSpec();
-      EventHistoryCollector ehc = 
-        evtMgr.createCollectorForEvents(eventFilter);
-      
-      int total = 0;
-      
-      Event[] latestEvts = ehc.getLatestPage();
-      printEvents(latestEvts, 0);
-      total += latestEvts==null? 0 : latestEvts.length;
-      
-      System.out.println("\nBefore Latest Page:");
-      ehc.resetCollector();
-      while(true)
-      {
-        Event[] events = ehc.readPreviousEvents(50);
-        if(events==null)
-        {
-          break;
-        }
-        printEvents(events, total);
-        total += events.length;
+         Event[] latestEvts = ehc.getLatestPage();
+         printEvents(latestEvts, 0);
+         total += latestEvts == null ? 0 : latestEvts.length;
+
+         System.out.println("\nBefore Latest Page:");
+         ehc.resetCollector();
+         while (true) {
+            Event[] events = ehc.readPreviousEvents(50);
+            if (events == null) {
+               break;
+            }
+            printEvents(events, total);
+            total += events.length;
+         }
       }
-    }
-    si.getServerConnection().logout();
-  }
-  
-  static void printEvents(Event[] events, int total)
-  {
-    for(int i=0; i<events.length; i++)
-    {
-      System.out.println("Event[" + (total+i) + "]=" + events[i].getClass().getName());
-      System.out.println("Event: " + events[i].getCreatedTime().getTime());
-    }
-  }
+      si.getServerConnection().logout();
+   }
+
+   static void printEvents(Event[] events, int total) {
+      for (int i = 0; i < events.length; i++) {
+         System.out.println("Event[" + (total + i) + "]=" + events[i].getClass().getName());
+         System.out.println("Event: " + events[i].getCreatedTime().getTime());
+      }
+   }
 }
