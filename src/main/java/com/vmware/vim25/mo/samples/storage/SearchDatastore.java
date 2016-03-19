@@ -29,13 +29,13 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package com.vmware.vim25.mo.samples.storage;
 
-import java.net.URL;
-
 import com.vmware.vim25.ArrayOfHostDatastoreBrowserSearchResults;
 import com.vmware.vim25.DatastoreInfo;
 import com.vmware.vim25.FileInfo;
 import com.vmware.vim25.FileQuery;
 import com.vmware.vim25.FileQueryFlags;
+import com.vmware.vim25.FolderFileInfo;
+import com.vmware.vim25.FolderFileQuery;
 import com.vmware.vim25.HostDatastoreBrowserSearchResults;
 import com.vmware.vim25.HostDatastoreBrowserSearchSpec;
 import com.vmware.vim25.VmDiskFileInfo;
@@ -47,119 +47,116 @@ import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.ServiceInstance;
 import com.vmware.vim25.mo.Task;
+import com.vmware.vim25.mo.samples.SampleUtil;
 
 /**
  * http://vijava.sf.net
+ * 
  * @author Steve Jin
  */
 
-public class SearchDatastore
-{
-  public static void main(String[] args) throws Exception 
-  {
-    if(args.length != 3)
-    {
-      System.out.println("Usage: java SearchDatastore <url> " 
-        + "<username> <password>");
-      return;
-    }
-    
-    ServiceInstance si = new ServiceInstance(
-        new URL(args[0]), args[1], args[2], true);
-    
-    String hostname = "10.20.143.205";
-    String datastorePath = "[storage1 (2)]";
+public class SearchDatastore {
+   public static void main(String[] args) throws Exception {
+      ServiceInstance si = SampleUtil.createServiceInstance();
 
-    Folder rootFolder = si.getRootFolder();
-    HostSystem host = null;
+      String hostname = "10.141.73.36";
+      String datastorePath = "[datastore1]";
 
-    host = (HostSystem) new InventoryNavigator(
-        rootFolder).searchManagedEntity("HostSystem", hostname);
+      Folder rootFolder = si.getRootFolder();
+      HostSystem host = null;
 
-    if(host==null)
-    {
-      System.out.println("Host not found");
-      si.getServerConnection().logout();
-      return;
-    }
-    
-    HostDatastoreBrowser hdb = host.getDatastoreBrowser();
-  
-    System.out.println("print out the names of the datastores");
-    Datastore[] ds = hdb.getDatastores();
-    for(int i=0; ds!=null && i<ds.length; i++)
-    {
-      System.out.println("datastore["+i+"]:");
-      DatastoreInfo di = ds[i].getInfo();
-      System.out.println("Name:" + di.getName());
-      System.out.println("FreeSpace:" + di.getFreeSpace());
-      System.out.println("MaxFileSize:" + di.getMaxFileSize());
-    }
-    
-    System.out.println("print out supported query types");
-    FileQuery[] fqs = hdb.getSupportedType();
-    for(int i=0; fqs!=null && i<fqs.length; i++)
-    {
-      System.out.println("FileQuery["+i+"]=" 
-          + fqs[i].getClass().getName());
-    }
-    
-    HostDatastoreBrowserSearchSpec hdbss = 
-      new HostDatastoreBrowserSearchSpec();
-    hdbss.setQuery(new FileQuery[] { new VmDiskFileQuery()});
-    FileQueryFlags fqf = new FileQueryFlags();
-    fqf.setFileSize(true);
-    fqf.setModification(true);
-    hdbss.setDetails(fqf);
-    hdbss.setSearchCaseInsensitive(false);
-    hdbss.setMatchPattern(new String[] {"sdk*.*"});
-    
-    Task task = hdb.searchDatastoreSubFolders_Task(
-        datastorePath, hdbss);
-    if(task.waitForMe()==Task.SUCCESS)
-    {
-      Object obj = task.getTaskInfo().getResult();
-      if(obj instanceof ArrayOfHostDatastoreBrowserSearchResults)
-      {
-        HostDatastoreBrowserSearchResults[] results = 
-          ((ArrayOfHostDatastoreBrowserSearchResults)
-              obj).getHostDatastoreBrowserSearchResults();
-        
-        for(int i=0; i<results.length; i++)
-        {
-          HostDatastoreBrowserSearchResults result = results[i];
-          System.out.println("\nFolder:" 
-              + result.getFolderPath());
-          FileInfo[] fis = result.getFile();
-          for(int j=0; fis!=null && j<fis.length; j++)
-          {
-            System.out.println("Path:" + fis[j].getPath());
-            System.out.println("FileSize:" 
-                + fis[j].getFileSize());
-            System.out.println("Modified:" 
-                + fis[j].getModification().getTime());
-            if(fis[j] instanceof VmDiskFileInfo)
-            {
-              printExtraDiskFileInfo((VmDiskFileInfo)fis[j]);
-            }
-          }
-        }
+      host = (HostSystem) new InventoryNavigator(rootFolder).searchManagedEntity("HostSystem", hostname);
+
+      if (host == null) {
+         System.out.println("Host not found");
+         si.getServerConnection().logout();
+         return;
       }
+
+      HostDatastoreBrowser hdb = host.getDatastoreBrowser();
+
+      System.out.println("\n=== Print out the names of the datastores ===");
+      Datastore[] ds = hdb.getDatastores();
+      for (int i = 0; ds != null && i < ds.length; i++) {
+         System.out.println("datastore[" + i + "]:");
+         DatastoreInfo di = ds[i].getInfo();
+         System.out.println("Name:" + di.getName());
+         System.out.println("FreeSpace:" + di.getFreeSpace());
+         System.out.println("MaxFileSize:" + di.getMaxFileSize());
+         System.out.println();
+      }
+
+      System.out.println("\n=== Print out supported query types ===");
+      FileQuery[] fqs = hdb.getSupportedType();
+      for (int i = 0; fqs != null && i < fqs.length; i++) {
+         System.out.println("FileQuery[" + i + "]=" + fqs[i].getClass().getName());
+      }
+      System.out.println();
+
+      HostDatastoreBrowserSearchSpec hdbss = new HostDatastoreBrowserSearchSpec();
+      hdbss.setQuery(new FileQuery[] { new FileQuery(), new FolderFileQuery() });
+      FileQueryFlags fqf = new FileQueryFlags();
+      fqf.setFileSize(true);
+      fqf.setModification(true);
+      fqf.setFileOwner(false);
+      fqf.setFileType(true);
+      hdbss.setDetails(fqf);
+      hdbss.setSearchCaseInsensitive(false);
+      hdbss.setSortFoldersFirst(true);
+      hdbss.setMatchPattern(new String[] { "*" });
+
+      // it's not recursive
+      System.out.println("\n=== Print out files in the datastore ===");
+      Task task = hdb.searchDatastore_Task(datastorePath, hdbss);
+      if (task.waitForTask() == Task.SUCCESS) {
+         Object obj = task.getTaskInfo().getResult();
+         HostDatastoreBrowserSearchResults r = (HostDatastoreBrowserSearchResults) obj;
+         HostDatastoreBrowserSearchResults[] results = new HostDatastoreBrowserSearchResults[] { r };
+         printFilesInFolders(results);
+      }
+
+      // it's not recursive
+      System.out.println("\n=== Print out folders in the datastore ===");
+      task = hdb.searchDatastoreSubFolders_Task(datastorePath, hdbss);
+      if (task.waitForTask() == Task.SUCCESS) {
+         Object obj = task.getTaskInfo().getResult();
+         HostDatastoreBrowserSearchResults[] results = ((ArrayOfHostDatastoreBrowserSearchResults) obj)
+               .getHostDatastoreBrowserSearchResults();
+         printFilesInFolders(results);
+      }
+
       si.getServerConnection().logout();
-    }
-  }
-    
-  static void printExtraDiskFileInfo(VmDiskFileInfo info)
-  {
-    System.out.println("CapacityKB:" + info.getCapacityKb());
-    System.out.println("ControllerType:" 
-        + info.getControllerType());
-    System.out.println("DiskType:" + info.getDiskType());
-    System.out.println("DiskExtents:");
-    String[] exts = info.getDiskExtents();
-    for(int i =0; i<exts.length; i++)
-    {
-      System.out.print(exts[i] + " ");
-    }
-  }
+   }
+
+   static void printFilesInFolders(HostDatastoreBrowserSearchResults[] results) {
+      for (int i = 0; i < results.length; i++) {
+         HostDatastoreBrowserSearchResults result = results[i];
+         System.out.println("\nFiles in Folder " + result.getFolderPath());
+         FileInfo[] fis = result.getFile();
+         for (int j = 0; fis != null && j < fis.length; j++) {
+            System.out.println(fis[j].getClass().getName());
+            if (fis[j] instanceof FolderFileInfo) {
+               System.out.println("Sub Folder: " + fis[j].getPath());
+               System.out.println("FileSize: " + fis[j].getFileSize());
+            } else if (fis[j] instanceof VmDiskFileInfo) {
+               printExtraDiskFileInfo((VmDiskFileInfo) fis[j]);
+            } else {
+               System.out.println("File: " + fis[j].getPath());
+               System.out.println("FileSize: " + fis[j].getFileSize());
+               System.out.println("Modified: " + fis[j].getModification().getTime());
+            }
+         }
+      }
+   }
+
+   static void printExtraDiskFileInfo(VmDiskFileInfo info) {
+      System.out.println("CapacityKB:" + info.getCapacityKb());
+      System.out.println("ControllerType:" + info.getControllerType());
+      System.out.println("DiskType:" + info.getDiskType());
+      System.out.println("DiskExtents:");
+      String[] exts = info.getDiskExtents();
+      for (int i = 0; i < exts.length; i++) {
+         System.out.print(exts[i] + " ");
+      }
+   }
 }
