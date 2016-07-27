@@ -29,7 +29,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package com.vmware.vim25.mo.samples.perf;
 
-import java.net.URL;
 import java.util.Calendar;
 
 import com.vmware.vim25.PerfCompositeMetric;
@@ -46,27 +45,19 @@ import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.PerformanceManager;
 import com.vmware.vim25.mo.ServiceInstance;
 import com.vmware.vim25.mo.VirtualMachine;
+import com.vmware.vim25.mo.samples.SampleUtil;
 
 /**
- * http://vijava.sf.net
+ * Get performance metrics of a Host and all VMs on it.
  * @author Steve Jin
  */
-
 public class GetMultiPerf 
 {
   public static void main(String[] args) throws Exception
   {
-    if(args.length != 4)
-    {
-      System.out.println("Usage: java GetMultiPerf " 
-        + "<url> <username> <password> <vmname>");
-      return;
-    }
+    ServiceInstance si = SampleUtil.createServiceInstance();
 
-    ServiceInstance si = new ServiceInstance(
-      new URL(args[0]), args[1], args[2], true);
-
-    String vmname = args[3];
+    String vmname = args[0];
     VirtualMachine vm = (VirtualMachine) new InventoryNavigator(
       si.getRootFolder()).searchManagedEntity(
         "VirtualMachine", vmname);
@@ -86,7 +77,11 @@ public class GetMultiPerf
     // retrieve all the available perf metrics for vm
     PerfMetricId[] pmis = perfMgr.queryAvailablePerfMetric(
         vm, null, null, perfInterval);
-    
+    // clear instance field to retrieve all VMs' metrics.
+    for(PerfMetricId id : pmis){
+       id.setInstance(""); 
+    }
+
     Calendar curTime = si.currentTime();
     
     PerfQuerySpec qSpec = new PerfQuerySpec();
@@ -97,12 +92,11 @@ public class GetMultiPerf
     qSpec.setIntervalId(perfInterval); 
 
     Calendar startTime = (Calendar) curTime.clone();
-    startTime.roll(Calendar.DATE, -4);
+    startTime.roll(Calendar.DATE, -1);
     System.out.println("start:" + startTime.getTime());
     qSpec.setStartTime(startTime);
     
     Calendar endTime = (Calendar) curTime.clone();
-    endTime.roll(Calendar.DATE, -3);
     System.out.println("end:" + endTime.getTime());
     qSpec.setEndTime(endTime);
     
@@ -121,6 +115,7 @@ public class GetMultiPerf
 
   static void printPerfMetric(PerfEntityMetricBase val)
   {
+    System.out.println("\n----------------");
     String entityDesc = val.getEntity().getType() 
         + ":" + val.getEntity().get_value();
     System.out.println("Entity:" + entityDesc);

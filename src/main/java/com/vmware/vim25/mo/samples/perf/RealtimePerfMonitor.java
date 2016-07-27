@@ -29,8 +29,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package com.vmware.vim25.mo.samples.perf;
 
-import java.net.URL;
-
 import com.vmware.vim25.PerfEntityMetric;
 import com.vmware.vim25.PerfEntityMetricBase;
 import com.vmware.vim25.PerfEntityMetricCSV;
@@ -45,6 +43,7 @@ import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.ManagedEntity;
 import com.vmware.vim25.mo.PerformanceManager;
 import com.vmware.vim25.mo.ServiceInstance;
+import com.vmware.vim25.mo.samples.SampleUtil;
 
 /**
  * http://vijava.sf.net
@@ -55,17 +54,9 @@ public class RealtimePerfMonitor
 {
   public static void main(String[] args) throws Exception
   {
-    if(args.length != 4)
-    {
-      System.out.println("Usage: java RealtimePerfMonitor " 
-        + "<url> <username> <password> <vmname>");
-      return;
-    }
+    ServiceInstance si = SampleUtil.createServiceInstance();
 
-    ServiceInstance si = new ServiceInstance(
-      new URL(args[0]), args[1], args[2], true);
-
-    String vmname = args[3];
+    String vmname = args[0];
     ManagedEntity vm = new InventoryNavigator(
       si.getRootFolder()).searchManagedEntity(
         "VirtualMachine", vmname);
@@ -80,16 +71,20 @@ public class RealtimePerfMonitor
 
     PerformanceManager perfMgr = si.getPerformanceManager();
 
-    // find out the refresh rate for the virtual machine
+    // find out the refresh interval for the virtual machine
+    // use this interval to retrieve real time performance data
+    // the interval must be one of 300, 1800, 7200 and 86400
+    // see http://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoricalInterval.html
     PerfProviderSummary pps = perfMgr.queryPerfProviderSummary(vm);
-    int refreshRate = pps.getRefreshRate().intValue();
+    int refreshInterval = pps.getRefreshRate().intValue();
+    System.out.println("Current refresh interval is " + refreshInterval);
 
     // retrieve all the available perf metrics for vm
     PerfMetricId[] pmis = perfMgr.queryAvailablePerfMetric(
-        vm, null, null, refreshRate);
+        vm, null, null, refreshInterval);
 
     PerfQuerySpec qSpec = createPerfQuerySpec(
-        vm, pmis, 3, refreshRate);
+        vm, pmis, 3, refreshInterval);
 
     while(true) 
     {
@@ -100,7 +95,7 @@ public class RealtimePerfMonitor
         displayValues(pValues);
       }
       System.out.println("Sleeping 60 seconds...");
-      Thread.sleep(refreshRate*3*1000);
+      Thread.sleep(refreshInterval*3*1000);
     }
   }
 
@@ -112,9 +107,9 @@ public class RealtimePerfMonitor
     // set the maximum of metrics to be return
     // only appropriate in real-time performance collecting
     qSpec.setMaxSample(new Integer(maxSample));
-//    qSpec.setMetricId(metricIds);
-    // optionally you can set format as "normal"
-    qSpec.setFormat("csv");
+    qSpec.setMetricId(metricIds);
+    // optionally you can set format as "normal" or "csv"
+    qSpec.setFormat("normal");
     // set the interval to the refresh rate for the entity
     qSpec.setIntervalId(new Integer(interval));
  
@@ -149,13 +144,11 @@ public class RealtimePerfMonitor
     PerfMetricSeries[] vals = pem.getValue();
     PerfSampleInfo[]  infos = pem.getSampleInfo();
     
-    System.out.println("Sampling Times and Intervales:");
+    System.out.println("Sampling Times and Values:");
     for(int i=0; infos!=null && i <infos.length; i++)
     {
       System.out.println("Sample time: " 
           + infos[i].getTimestamp().getTime());
-      System.out.println("Sample interval (sec):" 
-          + infos[i].getInterval());
     }
     System.out.println("Sample values:");
     for(int j=0; vals!=null && j<vals.length; ++j)
