@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'eclipse'
 
 version = '5.5.10'
 
@@ -9,16 +10,16 @@ repositories {
 }
 
 dependencies {
-    compile 'org.dom4j:dom4j:2.0.0-RC1'
-    compile 'com.toastcoders:yavijava:6.0.04-SNAPSHOT'
+    compile 'org.dom4j:dom4j:2.0.0'
+    compile 'com.toastcoders:yavijava:6.0.04'
     compile 'javax.mail:mail:1.4.7'
-    compile 'javax.servlet:servlet-api:2.5'
+    compile 'javax.servlet:javax.servlet-api:3.1.0'
 }
 
 sourceSets {
     main {
         java {
-            exclude 'com/vmware/vim25/mo/samples/**'
+//            exclude 'com/vmware/vim25/mo/samples/**'
         }
     }
 }
