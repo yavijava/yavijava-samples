@@ -23,6 +23,14 @@ import java.security.cert.X509Certificate;
  *   java ProvisionFromScratch <vcenter-url> <vc-username> <vc-password>
  *                             <dc-name> <host-username> <host-password>
  *
+ * Prerequisites (vSphere 9.0):
+ *   vSphere 9.0 requires the vLCM (vSphere Lifecycle Manager) depot to contain
+ *   at least one ESXi version image before a host can be added via the API.
+ *   If addStandaloneHost_Task fails with SystemError "No ESXi versions found in
+ *   the vLCM depot", go to vCenter → Lifecycle Manager → Image Depot and either:
+ *     a) Import Image from Host — pulls the ESXi version from the host being added
+ *     b) Sync Updates        — downloads ESXi versions from the online depot
+ *
  * Lab constants (edit these for your environment):
  */
 public class ProvisionFromScratch {
