@@ -1,25 +1,25 @@
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'eclipse'
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+}
 
-version = '5.5.10'
+group = 'com.toastcoders'
+version = '9.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
-    compile 'org.dom4j:dom4j:2.0.0'
-    compile 'com.toastcoders:yavijava:6.0.04'
-    compile 'javax.mail:mail:1.4.7'
-    compile 'javax.servlet:javax.servlet-api:3.1.0'
-}
-
-sourceSets {
-    main {
-        java {
-//            exclude 'com/vmware/vim25/mo/samples/**'
-        }
-    }
+    implementation 'com.toastcoders:yavijava:9.0-SNAPSHOT'
+    implementation 'org.dom4j:dom4j:2.1.4'
+    implementation 'javax.mail:mail:1.4.7'
+    implementation 'javax.servlet:javax.servlet-api:3.1.0'
 }
