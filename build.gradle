@@ -1,7 +1,12 @@
 plugins {
     id 'java'
+    id 'application'
     id 'idea'
     id 'eclipse'
+}
+
+application {
+    mainClass = 'com.vmware.vim25.mo.samples.vm.ProvisionFromScratch'
 }
 
 group = 'com.toastcoders'
