@@ -218,12 +218,17 @@ public class ProvisionFromScratch {
                 System.exit(1);
             }
         } catch (com.vmware.vim25.RuntimeFault e) {
-            // vCenter returned a SOAP fault — print the type and message so the
-            // developer can see the underlying reason (e.g. SSLVerifyFault,
-            // InvalidLogin, SystemError) rather than a bare stack trace.
+            // vCenter returned a SOAP fault — print the type and details so the
+            // developer can see the underlying reason rather than a bare stack trace.
+            // Note: vim25 fault classes don't set the Java exception message; the
+            // actual error text lives in type-specific fields (e.g. reason, msg).
             System.err.println("ERROR: vCenter fault while waiting for task: " + description);
             System.err.println("  Fault type : " + e.getClass().getSimpleName());
-            System.err.println("  Message    : " + e.getMessage());
+            if (e instanceof com.vmware.vim25.SystemError) {
+                System.err.println("  Reason     : " + ((com.vmware.vim25.SystemError) e).getReason());
+            } else {
+                System.err.println("  Message    : " + e.getMessage());
+            }
             System.exit(1);
         }
         System.out.println("  Task succeeded: " + description);
