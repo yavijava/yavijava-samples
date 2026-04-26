@@ -3,8 +3,15 @@ package com.vmware.vim25.mo.samples.vm;
 import com.vmware.vim25.*;
 import com.vmware.vim25.mo.*;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.security.MessageDigest;
+import java.security.cert.X509Certificate;
 
 /**
  * End-to-end provisioning sample for DRP (Digital Rebar Provisioner) discovery.
@@ -62,11 +69,20 @@ public class ProvisionFromScratch {
         System.out.println("Datacenter created: " + dc.getName());
 
         // Step 3: Add standalone host
+        // Fetch the ESXi host's self-signed certificate thumbprint so vCenter
+        // can verify the host identity. In a lab the cert is always self-signed;
+        // we trust-all here to retrieve it, then hand the SHA-1 fingerprint to
+        // vCenter so it can store and verify it going forward.
+        System.out.println("Fetching SSL thumbprint from host: " + HOST_IP);
+        String thumbprint = getHostThumbprint(HOST_IP);
+        System.out.println("  Thumbprint: " + thumbprint);
+
         System.out.println("Adding host: " + HOST_IP);
         HostConnectSpec hostSpec = new HostConnectSpec();
         hostSpec.setHostName(HOST_IP);
         hostSpec.setUserName(hostUser);
         hostSpec.setPassword(hostPass);
+        hostSpec.setSslThumbprint(thumbprint);
         hostSpec.setForce(true);
 
         Task addHostTask = dc.getHostFolder()
@@ -194,12 +210,61 @@ public class ProvisionFromScratch {
     private static void waitForTask(Task task, String description)
             throws RemoteException, InterruptedException {
         System.out.println("  Waiting for task: " + description + "...");
-        String result = task.waitForMe();
-        if (!Task.SUCCESS.equals(result)) {
-            System.err.println("ERROR: Task failed: " + description);
-            System.err.println("  Result: " + result);
+        try {
+            String result = task.waitForMe();
+            if (!Task.SUCCESS.equals(result)) {
+                System.err.println("ERROR: Task failed: " + description);
+                System.err.println("  Result: " + result);
+                System.exit(1);
+            }
+        } catch (com.vmware.vim25.RuntimeFault e) {
+            // vCenter returned a SOAP fault — print the type and message so the
+            // developer can see the underlying reason (e.g. SSLVerifyFault,
+            // InvalidLogin, SystemError) rather than a bare stack trace.
+            System.err.println("ERROR: vCenter fault while waiting for task: " + description);
+            System.err.println("  Fault type : " + e.getClass().getSimpleName());
+            System.err.println("  Message    : " + e.getMessage());
             System.exit(1);
         }
         System.out.println("  Task succeeded: " + description);
+    }
+
+    // -------------------------------------------------------------------------
+    // SSL thumbprint helper
+    // -------------------------------------------------------------------------
+
+    /**
+     * Opens a trust-all TLS connection to {@code host}:443, retrieves the
+     * server certificate, and returns its SHA-1 fingerprint in the colon-hex
+     * format that vCenter's {@code HostConnectSpec.sslThumbprint} expects
+     * (e.g. {@code "AA:BB:CC:..."}).
+     *
+     * <p>Using a trust-all socket here is intentional: we are in a lab with a
+     * self-signed cert and the goal is to <em>retrieve</em> the thumbprint so
+     * vCenter can store and verify it going forward. The thumbprint itself
+     * provides a lightweight form of host identity pinning for subsequent
+     * connections.
+     */
+    private static String getHostThumbprint(String host) throws Exception {
+        SSLContext ctx = SSLContext.getInstance("TLS");
+        ctx.init(null, new TrustManager[]{new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            public void checkClientTrusted(X509Certificate[] c, String a) {}
+            public void checkServerTrusted(X509Certificate[] c, String a) {}
+        }}, null);
+
+        SSLSocketFactory factory = ctx.getSocketFactory();
+        try (SSLSocket socket = (SSLSocket) factory.createSocket(host, 443)) {
+            socket.startHandshake();
+            X509Certificate cert = (X509Certificate)
+                    socket.getSession().getPeerCertificates()[0];
+            byte[] digest = MessageDigest.getInstance("SHA-1").digest(cert.getEncoded());
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < digest.length; i++) {
+                if (i > 0) sb.append(':');
+                sb.append(String.format("%02X", digest[i] & 0xff));
+            }
+            return sb.toString();
+        }
     }
 }
