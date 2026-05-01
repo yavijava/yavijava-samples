@@ -20,6 +20,7 @@ import java.net.URL;
 
 import com.vmware.vim25.AboutInfo;
 import com.vmware.vim25.DirectPathProfileInfo;
+import com.vmware.vim25.DirectPathProfileManagerFilterSpec;
 import com.vmware.vim25.HostConfigManager;
 import com.vmware.vim25.ManagedObjectReference;
 import com.vmware.vim25.ServiceContent;
@@ -154,7 +155,7 @@ public class Vsphere9SmokeTest {
       try {
         DirectPathProfileManager dppm = (DirectPathProfileManager) MorUtil
             .createExactManagedObject(si.getServerConnection(), sc.getDirectPathProfileManager());
-        DirectPathProfileInfo[] profiles = dppm.listDirectPathProfiles(null);
+        DirectPathProfileInfo[] profiles = dppm.listDirectPathProfiles(new DirectPathProfileManagerFilterSpec());
         pass(String.format("DirectPathProfileManager.listDirectPathProfiles -> %d profile(s)",
             profiles == null ? 0 : profiles.length));
       } catch (Exception e) {
