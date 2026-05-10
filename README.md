@@ -61,7 +61,7 @@ Credential source order is:
 
 Session-token configuration is supported by the runner for samples cataloged as `SESSION_TOKEN` once their legacy argument handling is compatible with the runner.
 
-Unusual legacy or plugin callback samples that do not accept runner-managed connection settings are intentionally excluded from the catalog until migrated.
+Properties-file legacy samples and plugin callback samples that do not accept runner-managed connection settings are intentionally excluded from the catalog until migrated.
 
 Pass sample-specific arguments after `--` so the runner can separate them from connection options:
 

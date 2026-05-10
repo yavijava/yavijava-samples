@@ -66,6 +66,8 @@ class SampleCatalogTest {
 
         assertFalse(catalog.find("Mor2MO").isPresent());
         assertFalse(catalog.find("com.vmware.vim25.mo.samples.Mor2MO").isPresent());
+        assertFalse(catalog.find("ExtMgrUtil").isPresent());
+        assertFalse(catalog.find("com.vmware.vim25.mo.samples.ext.ExtMgrUtil").isPresent());
     }
 
     private static ByteArrayInputStream stream(String value) {

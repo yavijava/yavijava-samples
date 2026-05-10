@@ -47,6 +47,7 @@ tasks.register('generateSampleCatalog') {
                 'com.vmware.vim25.mo.samples.cli.SamplesCli',
                 'com.vmware.vim25.mo.samples.ovf.LeaseProgressUpdater',
                 'com.vmware.vim25.mo.samples.cluster.EmailMessenger',
+                'com.vmware.vim25.mo.samples.ext.ExtMgrUtil',
                 'com.vmware.vim25.mo.samples.ext.TestServlet'
         ] as Set
         def rows = []
