@@ -43,6 +43,7 @@ tasks.register('generateSampleCatalog') {
         def skippedClasses = [
                 'com.vmware.vim25.mo.samples.SampleUtil',
                 'com.vmware.vim25.mo.samples.HttpsConnectionUtil',
+                'com.vmware.vim25.mo.samples.Mor2MO',
                 'com.vmware.vim25.mo.samples.cli.SamplesCli',
                 'com.vmware.vim25.mo.samples.ovf.LeaseProgressUpdater',
                 'com.vmware.vim25.mo.samples.cluster.EmailMessenger',

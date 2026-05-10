@@ -60,6 +60,14 @@ class SampleCatalogTest {
         assertFalse(catalog.find("SamplesCli").isPresent());
     }
 
+    @Test
+    void generatedCatalogDoesNotIncludePluginCallbackSamples() throws Exception {
+        SampleCatalog catalog = SampleCatalog.loadDefault();
+
+        assertFalse(catalog.find("Mor2MO").isPresent());
+        assertFalse(catalog.find("com.vmware.vim25.mo.samples.Mor2MO").isPresent());
+    }
+
     private static ByteArrayInputStream stream(String value) {
         return new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
     }
