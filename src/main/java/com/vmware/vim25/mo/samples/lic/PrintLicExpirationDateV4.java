@@ -48,8 +48,14 @@ public class PrintLicExpirationDateV4
 {
   public static void main(String[] args) throws Exception
   {
-    ServiceInstance si = new ServiceInstance(new URL("https://8.8.8.8/sdk"), 
-        "administrator", "vmware", true);
+    if(args.length != 3)
+    {
+      System.out.println("Usage: java PrintLicExpirationDateV4 <url> <username> <password>");
+      return;
+    }
+
+    ServiceInstance si = new ServiceInstance(new URL(args[0]),
+        args[1], args[2], true);
     LicenseManager lm = si.getLicenseManager();
     LicenseManagerLicenseInfo[] lics = lm.getLicenses();
 

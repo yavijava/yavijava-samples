@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+APP="$ROOT/build/install/yavijava-samples/bin/yavijava-samples"
+
+if [ ! -x "$APP" ]; then
+  "$ROOT/gradlew" -q installDist >/dev/null
+fi
+
+exec "$APP" "$@"

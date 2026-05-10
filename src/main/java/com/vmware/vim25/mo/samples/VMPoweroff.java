@@ -44,7 +44,13 @@ public class VMPoweroff
 {
   public static void main(String[] args) throws Exception
   {
-    ServiceInstance si = new ServiceInstance(new URL("https://10.17.218.174/sdk"), "root", "password", true);
+    if(args.length != 3)
+    {
+      System.out.println("Usage: java VMPoweroff <url> <username> <password>");
+      return;
+    }
+
+    ServiceInstance si = new ServiceInstance(new URL(args[0]), args[1], args[2], true);
     Folder rootFolder = si.getRootFolder();
     
     ManagedEntity[] mes = rootFolder.getChildEntity();

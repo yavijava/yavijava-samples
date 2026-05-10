@@ -1,3 +1,5 @@
+Modern usage documentation lives in README.md. This file is retained for historical VI Java API background.
+
 Welcome to VI Java API
 
 WHAT IS VI JAVA API?

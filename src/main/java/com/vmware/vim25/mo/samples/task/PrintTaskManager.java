@@ -65,7 +65,7 @@ public class PrintTaskManager
         "retrive historical tasks: " + maxCollector);
     
     System.out.println("\nTask description:");
-    TaskDescription td = taskMgr.getDescriptioin();
+    TaskDescription td = taskMgr.getDescription();
     printTaskDescription(td);
     
     System.out.println("\nRecent tasks:");
