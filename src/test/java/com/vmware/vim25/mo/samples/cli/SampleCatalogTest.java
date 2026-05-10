@@ -1,6 +1,7 @@
 package com.vmware.vim25.mo.samples.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -50,6 +51,13 @@ class SampleCatalogTest {
         SampleEntry smokeTest = catalog.find("Vsphere9SmokeTest").orElseThrow();
         assertEquals("com.vmware.vim25.mo.samples.Vsphere9SmokeTest", smokeTest.className());
         assertNotNull(smokeTest.category());
+    }
+
+    @Test
+    void generatedCatalogDoesNotIncludeCliRunner() throws Exception {
+        SampleCatalog catalog = SampleCatalog.loadDefault();
+
+        assertFalse(catalog.find("SamplesCli").isPresent());
     }
 
     private static ByteArrayInputStream stream(String value) {
