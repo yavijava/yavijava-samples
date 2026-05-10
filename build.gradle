@@ -30,6 +30,85 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 }
 
+def generatedResourcesDir = layout.buildDirectory.dir('generated/resources/sampleCatalog')
+
+tasks.register('generateSampleCatalog') {
+    def sourceRoot = layout.projectDirectory.dir('src/main/java')
+    inputs.files(fileTree(sourceRoot) {
+        include '**/*.java'
+    })
+    outputs.file(generatedResourcesDir.map { it.file('sample-catalog.tsv') })
+
+    doLast {
+        def skippedClasses = [
+                'com.vmware.vim25.mo.samples.SampleUtil',
+                'com.vmware.vim25.mo.samples.HttpsConnectionUtil',
+                'com.vmware.vim25.mo.samples.ovf.LeaseProgressUpdater',
+                'com.vmware.vim25.mo.samples.cluster.EmailMessenger',
+                'com.vmware.vim25.mo.samples.ext.TestServlet'
+        ] as Set
+        def rows = []
+        fileTree(sourceRoot) {
+            include '**/*.java'
+        }.files.each { javaFile ->
+            def text = javaFile.getText('UTF-8')
+            if (!text.contains('public static void main')) {
+                return
+            }
+
+            def relativePath = sourceRoot.asFile.toPath().relativize(javaFile.toPath()).toString().replace(File.separatorChar, '/' as char)
+            def className = relativePath.replaceAll('\\.java$', '').replace('/', '.')
+            def fqcn = className
+            def packageMatch = text =~ /(?m)^\s*package\s+([^;]+);/
+            if (packageMatch.find()) {
+                fqcn = packageMatch.group(1) + '.' + javaFile.name.replaceAll('\\.java$', '')
+            }
+            if (skippedClasses.contains(fqcn)) {
+                return
+            }
+
+            def alias = javaFile.name.replaceAll('\\.java$', '')
+            def packagePrefix = 'com.vmware.vim25.mo.samples.'
+            def category = 'root'
+            if (fqcn.startsWith(packagePrefix)) {
+                def remainder = fqcn.substring(packagePrefix.length())
+                if (remainder.contains('.')) {
+                    category = remainder.substring(0, remainder.indexOf('.'))
+                }
+            }
+            def argStyle = 'POSITIONAL_CONNECTION'
+            if (fqcn == 'com.vmware.vim25.mo.samples.session.SessionConsumer') {
+                argStyle = 'SESSION_TOKEN'
+            } else if (text.contains('CommandLineParser')) {
+                argStyle = 'NAMED_CONNECTION'
+            } else if (text.contains('SampleUtil.createServiceInstance()')) {
+                argStyle = 'SYSTEM_PROPERTIES'
+            }
+            rows << [alias, fqcn, category, argStyle]
+        }
+
+        def duplicateAliases = rows.groupBy { it[0].toLowerCase(Locale.ROOT) }.findAll { it.value.size() > 1 }
+        if (!duplicateAliases.isEmpty()) {
+            throw new GradleException('Duplicate sample aliases detected: ' + duplicateAliases.collect { key, value -> value.collect { it[1] }.join(', ') }.join('; '))
+        }
+
+        rows.sort { left, right -> left[0].compareToIgnoreCase(right[0]) }
+        def outputFile = generatedResourcesDir.get().file('sample-catalog.tsv').asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.setText(rows.collect { it.join('\t') }.join('\n') + '\n', 'UTF-8')
+    }
+}
+
+sourceSets {
+    main {
+        resources.srcDir(generatedResourcesDir)
+    }
+}
+
+tasks.named('processResources') {
+    dependsOn tasks.named('generateSampleCatalog')
+}
+
 test {
     useJUnitPlatform()
 }
