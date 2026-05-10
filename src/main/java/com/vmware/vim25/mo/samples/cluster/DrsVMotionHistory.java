@@ -44,7 +44,13 @@ public class DrsVMotionHistory
 {
   public static void main(String[] args) throws Exception
   {
-    ServiceInstance si = new ServiceInstance(new URL("https://10.20.143.209/sdk"), "Administrator", "password", true);
+    if(args.length != 3)
+    {
+      System.out.println("Usage: java DrsVMotionHistory <url> <username> <password>");
+      return;
+    }
+
+    ServiceInstance si = new ServiceInstance(new URL(args[0]), args[1], args[2], true);
     ClusterComputeResource drsCluster = (ClusterComputeResource) new InventoryNavigator(
         si.getRootFolder()).searchManagedEntity("ClusterComputeResource", "myDrs");
     if(drsCluster==null)

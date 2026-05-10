@@ -39,11 +39,17 @@ import com.vmware.vim25.mox.VirtualMachineDeviceManager.VirtualNetworkAdapterTyp
 
 public class VMDeviceMgmt
 {
-  public static void main(String[] args) throws Exception 
+  public static void main(String[] args) throws Exception
   {
+    if(args.length != 3)
+    {
+      System.out.println("Usage: java VMDeviceMgmt <url> <username> <password>");
+      return;
+    }
+
     String vmName = "Rawc1.2_Win7x32bit_Target";
 
-    ServiceInstance si = new ServiceInstance(new URL("https://8.8.8.8/sdk"), "administrator", "vmware", true);
+    ServiceInstance si = new ServiceInstance(new URL(args[0]), args[1], args[2], true);
     VirtualMachine vm = (VirtualMachine) new InventoryNavigator(si.getRootFolder()).searchManagedEntity("VirtualMachine", vmName);
 
     VirtualMachineDeviceManager vmdm = new VirtualMachineDeviceManager(vm);
