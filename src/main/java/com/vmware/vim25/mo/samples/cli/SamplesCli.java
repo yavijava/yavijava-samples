@@ -72,7 +72,7 @@ public final class SamplesCli {
         out.println("Alias: " + entry.alias());
         out.println("Class: " + entry.className());
         out.println("Category: " + entry.category());
-        out.println("Arg style: " + entry.argStyle());
+        out.println("Argument style: " + entry.argStyle());
         out.println("Use -- before sample-specific arguments, for example: " + entry.alias() + " --url https://vc/sdk -- --sample-arg");
     }
 

@@ -36,7 +36,7 @@ class SamplesCliTest {
         assertTrue(text.contains("Alias: FakeNamed"));
         assertTrue(text.contains("Class: com.vmware.vim25.mo.samples.cli.FakeNamedSample"));
         assertTrue(text.contains("Category: test"));
-        assertTrue(text.contains("Arg style: NAMED_CONNECTION"));
+        assertTrue(text.contains("Argument style: NAMED_CONNECTION"));
         assertTrue(text.contains("--"));
     }
 
