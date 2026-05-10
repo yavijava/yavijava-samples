@@ -6,11 +6,11 @@ plugins {
 }
 
 application {
-    mainClass = 'com.vmware.vim25.mo.samples.vm.ProvisionFromScratch'
+    mainClass = 'com.vmware.vim25.mo.samples.cli.SamplesCli'
 }
 
 group = 'com.toastcoders'
-version = '9.0-SNAPSHOT'
+version = '9.0'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -23,8 +23,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.toastcoders:yavijava:9.0-SNAPSHOT'
+    implementation 'com.toastcoders:yavijava:9.0'
     implementation 'org.dom4j:dom4j:2.1.4'
     implementation 'javax.mail:mail:1.4.7'
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+}
+
+test {
+    useJUnitPlatform()
 }
