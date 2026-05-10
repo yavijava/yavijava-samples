@@ -1,6 +1,7 @@
 package com.vmware.vim25.mo.samples.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,7 +19,7 @@ class SampleConfigTest {
     }
 
     @Test
-    void resolvesCliOptionsBeforeSystemPropertiesAndDefaultsLocale() {
+    void resolvesCliOptionsBeforeSystemPropertiesAndLeavesLocaleEmpty() {
         System.setProperty("sample.url", "https://property/sdk");
         System.setProperty("sample.user", "property-user");
         System.setProperty("sample.password", "property-password");
@@ -35,7 +36,7 @@ class SampleConfigTest {
         assertEquals("https://cli/sdk", config.url());
         assertEquals("cli-user", config.user());
         assertEquals("cli-password", config.password());
-        assertEquals("en-US", config.locale());
+        assertEquals("", config.locale());
         assertEquals("cli-token", config.sessionToken());
     }
 
@@ -66,6 +67,15 @@ class SampleConfigTest {
         assertEquals("root", System.getProperty("sample.user"));
         assertEquals("secret", System.getProperty("sample.password"));
         assertEquals("en-GB", System.getProperty("sample.locale"));
+    }
+
+    @Test
+    void doesNotApplyMissingLocaleToSystemProperties() {
+        SampleConfig config = new SampleConfig("https://vc/sdk", "root", "secret", "", "");
+
+        config.applySystemProperties();
+
+        assertNull(System.getProperty("sample.locale"));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.vmware.vim25.mo.samples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,6 +16,7 @@ class SampleUtilTest {
     void clearSettings() {
         System.clearProperty("sample.url");
         System.clearProperty("sample.missing");
+        System.clearProperty("sample.locale");
     }
 
     @Test
@@ -39,6 +41,23 @@ class SampleUtilTest {
 
         assertTrue(error.getMessage().contains("sample.missing"));
         assertTrue(error.getMessage().contains("YAVIJAVA_TEST_MISSING"));
+    }
+
+    @Test
+    void localeSettingIsEmptyWhenNotExplicitlyConfigured() {
+        assertNull(SampleUtil.localeSetting(Map.of()));
+    }
+
+    @Test
+    void localeSettingReadsExplicitSystemProperty() {
+        System.setProperty("sample.locale", " fr-FR ");
+
+        assertEquals("fr-FR", SampleUtil.localeSetting(Map.of("YAVIJAVA_LOCALE", "de-DE")));
+    }
+
+    @Test
+    void localeSettingFallsBackToExplicitEnvironment() {
+        assertEquals("de-DE", SampleUtil.localeSetting(Map.of("YAVIJAVA_LOCALE", " de-DE ")));
     }
 
     @ParameterizedTest

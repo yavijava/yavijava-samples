@@ -3,15 +3,13 @@ package com.vmware.vim25.mo.samples.cli;
 import java.util.Map;
 
 public record SampleConfig(String url, String user, String password, String locale, String sessionToken) {
-    private static final String DEFAULT_LOCALE = "en-US";
-
     public static SampleConfig from(CliArgs args) {
         Map<String, String> env = System.getenv();
         return new SampleConfig(
                 setting(args, "url", "sample.url", "YAVIJAVA_URL", ""),
                 setting(args, "user", "sample.user", "YAVIJAVA_USER", ""),
                 setting(args, "password", "sample.password", "YAVIJAVA_PASSWORD", ""),
-                setting(args, "locale", "sample.locale", "YAVIJAVA_LOCALE", DEFAULT_LOCALE),
+                setting(args, "locale", "sample.locale", "YAVIJAVA_LOCALE", ""),
                 setting(args, "session_token", "sample.sessionToken", "YAVIJAVA_SESSION_TOKEN", "", env));
     }
 

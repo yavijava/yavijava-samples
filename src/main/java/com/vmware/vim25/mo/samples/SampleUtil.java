@@ -18,7 +18,10 @@ public class SampleUtil {
 
 	public static ServiceInstance createServiceInstance(String url, String user, String password) throws RemoteException, MalformedURLException {
 	   ServiceInstance si = new ServiceInstance(new URL(url), user, password, true);
-	   si.getSessionManager().setLocale(optionalSetting("sample.locale", "YAVIJAVA_LOCALE", "en-US"));
+	   String locale = localeSetting(System.getenv());
+	   if (locale != null) {
+	      si.getSessionManager().setLocale(locale);
+	   }
 	   return si;
 	}
 
@@ -34,8 +37,8 @@ public class SampleUtil {
 	   return value;
 	}
 
-	private static String optionalSetting(String propertyName, String envName, String defaultValue) {
-	   return setting(propertyName, envName, defaultValue, System.getenv());
+	static String localeSetting(Map<String, String> env) {
+	   return setting("sample.locale", "YAVIJAVA_LOCALE", null, env);
 	}
 
 	static String setting(String propertyName, String envName, String defaultValue, Map<String, String> env) {

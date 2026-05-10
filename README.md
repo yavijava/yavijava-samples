@@ -38,7 +38,7 @@ Run a sample with explicit credentials:
 ./samples HelloVM --url https://vcenter.example.com/sdk --user administrator@vsphere.local --password 'secret'
 ```
 
-The runner accepts `--locale`; samples that use `SampleUtil` apply it when creating a vSphere session. Other legacy samples may ignore it until they are migrated to the shared runner configuration.
+Locale is optional. When explicitly provided with `--locale`, `sample.locale`, or `YAVIJAVA_LOCALE`, samples that use `SampleUtil` apply it when creating a vSphere session. Other legacy samples may ignore it until they are migrated to the shared runner configuration.
 
 ```sh
 ./samples HelloVM --url https://vcenter.example.com/sdk --user administrator@vsphere.local --password 'secret' --locale en-US
